@@ -17,18 +17,17 @@ async function fetchRoles() {
         db.query(query, (err, res) => {
             if (err) {
                 reject(err);
-                } else {
-                    const roles = res.map((role) => {
-                        return {
-                            name: role.title,
-                            value: role.id
-                        }
-                    })
-                }));
+            } else {
+                const roles = res.map((role) => {
+                    return {
+                        name: role.title,
+                        value: role.id
+                    };
+                });
                 resolve(roles);
             }
         });
-    }
+    });
 }
 
 //fetch managers to give choices to user
@@ -38,18 +37,17 @@ async function fetchManagers() {
         db.query(query, (err, res) => {
             if (err) {
                 reject(err);
-                } else {
-                    const managers = res.map((employee) => {
-                        return {
-                            name: employee.first_name + " " + employee.last_name,
-                            value: employee.id
-                        }
-                    })
-                }));
+            } else {
+                const managers = res.map((employee) => {
+                    return {
+                        name: employee.first_name + " " + employee.last_name,
+                        value: employee.id
+                    };
+                });
                 resolve(managers);
             }
         });
-    }
+    });
 }
 
 //fetch department
@@ -60,18 +58,17 @@ async function fetchDepartments() {
         db.query(query, (err, res) => {
             if (err) {
                 reject(err);
-                } else {
-                    const departments = res.map((department) => {
-                        return {
-                            name: department.name,
-                            value: department.id
-                        }
-                    })
-                }));
+            } else {
+                const departments = res.map((department) => {
+                    return {
+                        name: department.name,
+                        value: department.id
+                    };
+                });
                 resolve(departments);
             }
         });
-    }
+    });
 }
 
 //fetch employees
@@ -81,18 +78,17 @@ async function fetchEmployees() {
         db.query(query, (err, res) => {
             if (err) {
                 reject(err);
-                } else {
-                    const employees = res.map((employee) => {
-                        return {
-                            name: employee.first_name + " " + employee.last_name,
-                            value: employee.id
-                        }
-                    })
-                }));
+            } else {
+                const employees = res.map((employee) => {
+                    return {
+                        name: employee.first_name + " " + employee.last_name,
+                        value: employee.id
+                    };
+                });
                 resolve(employees);
             }
         });
-    }
+    });
 }
 //add employee
 async function addEmployee() {
@@ -104,192 +100,399 @@ async function addEmployee() {
                 } else {
                     const employees = res.map((employee) => {
                         return {
-                            name: employee.first_name + " " + employee.last_name,
-                            value: employee.id
-                        }
-                    })
-                }));
-                resolve(employees);
-            }
-        });
-    }
-}
+                            const mysql = require("mysql");
+                            const inquirer = require("inquirer");
 
-//prompt menu
-async function promptMenu() {
-    const { menu } = await inquirer.prompt({
-        name: "menu",
-        type: "list",
-        message: "What would you like to do?",
-        choices: [
-            "View All Employees",
-            "View All Employees By Department",
-            "View All Employees By Manager",
-            "Add Employee",
-            "Remove Employee",
-            "Update Employee Role",
-            "Update Employee Manager",
-            "View All Roles",
-            "Add Role",
-            "Remove Role",
-            "View All Departments",
-            "Add Department",
-            "Remove Department",
-            "Exit"
-        ]
-    });
-}
-//if statements for menu
-if (answer.menu === "View All Employees") {
-    const query = "SELECT * FROM employee";
-    db.query(query, (err, res) =>{
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.table(res);
-            promptMenu();
-        }
-    })
-} 
+                            //create connection
+                            const db = mysql.createConnection({
+                                host: "localhost",
+                                port: 3306,
+                                user: "root",
+                                password: "password",
+                                database: "tracker_db"
+                            });
 
-if (answer.menu === "View All Employees By Department") {
-    const query = "SELECT * FROM department";
-    db.query(query, (err, res) =>{
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.table(res);
-            promptMenu();
-        }
-    })
-}
-if (answer.menu === "View All Employees By Manager") {
-    const query = "SELECT * FROM manager";
-    db.query(query, (err, res) =>{
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.table(res);
-            promptMenu();
-        }
-    })
-}
-if (answers.menu === "Add Employee") {
-    const roles = await fetchRoles();
-    const managers = await fetchManagers();
-    const { first_name, last_name, role_id, manager_id } = await inquirer.prompt([
-        {
-            name: "first_name",
-            type: "input",
-            message: "What is the employee's first name?"
-        },
-        {
-            name: "last_name",
-            type: "input",
-            message: "What is the employee's last name?"
-        },
-        {
-            name: "role_id",
-            type: "list",
-            message: "What is the employee's role?",
-            choices: roles
-        },
-        {
-            name: "manager_id",
-            type: "list",
-            message: "Who is the employee's manager?",
-            choices: managers
-        }
-    ]);
-    const query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
-    db.query(query, [first_name, last_name, role_id, manager_id], (err, res) => {
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.log("Employee added successfully");
-            promptMenu();
-        }
-    })
-}
-//delete employee
-if (answers.menu === "Remove Employee") {
-    const employees = await fetchEmployees();
-    const { employee_id } = await inquirer.prompt([
-        {
-            name: "employee_id",
-            type: "list",
-            message: "Which employee would you like to remove?",
-            choices: employees
-        }
-    ]);
-    const query = "DELETE FROM employee WHERE id = ?";
-    db.query(query, [employee_id], (err, res) => {
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.log("Employee removed successfully");
-            promptMenu();
-        }
-    })
-}
-//update employee manager
-if (answers.menu === "Update Employee Manager") {
-    const employees = await fetchEmployees();
-    const managers = await fetchManagers();
-    const { employee_id, manager_id } = await inquirer.prompt([
-        {
-            name: "employee_id",
-            type: "list",
-            message: "Which employee would you like to update?",
-            choices: employees
-        },
-        {
-            name: "manager_id",
-            type: "list",
-            message: "Who is the employee's new manager?",
-            choices: managers
-        }
-    ]);
-    const query = "UPDATE employee SET manager_id = ? WHERE id = ?";
-    db.query(query, [manager_id, employee_id], (err, res) => {
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.log("Employee manager updated successfully");
-            promptMenu();
-        }
-    })
-}
+                            //connect to database
+                            db.connect((err) => {
+                                if (err) {
+                                    console.error("error connecting:", err);
+                                } else {
+                                    console.log("connected as id", db.threadId);
+                                    promptMenu();
+                                }
+                            });
 
-//update employee role
-if (answers.menu === "Update Employee Role") {
-    const employees = await fetchEmployees();
-    const roles = await fetchRoles();
-    const { employee_id, role_id } = await inquirer.prompt([
-        {
-            name: "employee_id",
-            type: "list",
-            message: "Which employee would you like to update?",
-            choices: employees
-        },
-        {
-            name: "role_id",
-            type: "list",
-            message: "What is the employee's new role?",
-            choices: roles
-        }
-    ]);
-    const query = "UPDATE employee SET role_id = ? WHERE id = ?";
-    db.query(query, [role_id, employee_id], (err, res) => {
-        if (err) {
-            console.error("error:", err);
-        } else {
-            console.log("Employee role updated successfully");
-            promptMenu();
-        }
-    })
-}
-//view all roles
+                            //fetch roles
+                            async function fetchRoles() {
+                                return new Promise((resolve, reject) => {
+                                    const query = "SELECT * FROM role";
+                                    db.query(query, (err, res) => {
+                                        if (err) {
+                                            reject(err);
+                                        } else {
+                                            const roles = res.map((role) => ({
+                                                name: role.title,
+                                                value: role.id
+                                            }));
+                                            resolve(roles);
+                                        }
+                                    });
+                                });
+                            }
+
+                            //fetch managers
+                            async function fetchManagers() {
+                                return new Promise((resolve, reject) => {
+                                    const query = "SELECT * FROM manager";
+                                    db.query(query, (err, res) => {
+                                        if (err) {
+                                            reject(err);
+                                        } else {
+                                            const managers = res.map((manager) => ({
+                                                name: manager.first_name + " " + manager.last_name,
+                                                value: manager.id
+                                            }));
+                                            resolve(managers);
+                                        }
+                                    });
+                                });
+                            }
+
+                            //fetch departments
+                            async function fetchDepartments() {
+                                return new Promise((resolve, reject) => {
+                                    const query = "SELECT * FROM department";
+                                    db.query(query, (err, res) => {
+                                        if (err) {
+                                            reject(err);
+                                        } else {
+                                            const departments = res.map((department) => ({
+                                                name: department.name,
+                                                value: department.id
+                                            }));
+                                            resolve(departments);
+                                        }
+                                    });
+                                });
+                            }
+
+                            //fetch employees
+                            async function fetchEmployees() {
+                                return new Promise((resolve, reject) => {
+                                    const query = "SELECT * FROM employee";
+                                    db.query(query, (err, res) => {
+                                        if (err) {
+                                            reject(err);
+                                        } else {
+                                            const employees = res.map((employee) => ({
+                                                name: employee.first_name + " " + employee.last_name,
+                                                value: employee.id
+                                            }));
+                                            resolve(employees);
+                                        }
+                                    });
+                                });
+                            }
+
+                            //prompt menu
+                            async function promptMenu() {
+                                const { menu } = await inquirer.prompt({
+                                    name: "menu",
+                                    type: "list",
+                                    message: "What would you like to do?",
+                                    choices: [
+                                        "View All Employees",
+                                        "View All Employees By Department",
+                                        "View All Employees By Manager",
+                                        "Add Employee",
+                                        "Remove Employee",
+                                        "Update Employee Role",
+                                        "Update Employee Manager",
+                                        "View All Roles",
+                                        "Add Role",
+                                        "Remove Role",
+                                        "View All Departments",
+                                        "Add Department",
+                                        "Remove Department",
+                                        "Exit"
+                                    ]
+                                });
+
+                                //if statements for menu
+                                if (menu === "View All Employees") {
+                                    const query = "SELECT * FROM employee";
+                                    db.query(query, (err, res) =>{
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.table(res);
+                                            promptMenu();
+                                        }
+                                    });
+                                } 
+
+                                if (menu === "View All Employees By Department") {
+                                    const query = "SELECT * FROM department";
+                                    db.query(query, (err, res) =>{
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.table(res);
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "View All Employees By Manager") {
+                                    const query = "SELECT * FROM manager";
+                                    db.query(query, (err, res) =>{
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.table(res);
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "Add Employee") {
+                                    const roles = await fetchRoles();
+                                    const managers = await fetchManagers();
+                                    const { first_name, last_name, role_id, manager_id } = await inquirer.prompt([
+                                        {
+                                            name: "first_name",
+                                            type: "input",
+                                            message: "What is the employee's first name?"
+                                        },
+                                        {
+                                            name: "last_name",
+                                            type: "input",
+                                            message: "What is the employee's last name?"
+                                        },
+                                        {
+                                            name: "role_id",
+                                            type: "list",
+                                            message: "What is the employee's role?",
+                                            choices: roles
+                                        },
+                                        {
+                                            name: "manager_id",
+                                            type: "list",
+                                            message: "Who is the employee's manager?",
+                                            choices: managers
+                                        }
+                                    ]);
+                                    const query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+                                    db.query(query, [first_name, last_name, role_id, manager_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Employee added successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                //delete employee
+                                if (menu === "Remove Employee") {
+                                    const employees = await fetchEmployees();
+                                    const { employee_id } = await inquirer.prompt([
+                                        {
+                                            name: "employee_id",
+                                            type: "list",
+                                            message: "Which employee would you like to remove?",
+                                            choices: employees
+                                        }
+                                    ]);
+                                    const query = "DELETE FROM employee WHERE id = ?";
+                                    db.query(query, [employee_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Employee removed successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                //update employee manager
+                                if (menu === "Update Employee Manager") {
+                                    const employees = await fetchEmployees();
+                                    const managers = await fetchManagers();
+                                    const { employee_id, manager_id } = await inquirer.prompt([
+                                        {
+                                            name: "employee_id",
+                                            type: "list",
+                                            message: "Which employee would you like to update?",
+                                            choices: employees
+                                        },
+                                        {
+                                            name: "manager_id",
+                                            type: "list",
+                                            message: "Who is the employee's new manager?",
+                                            choices: managers
+                                        }
+                                    ]);
+                                    const query = "UPDATE employee SET manager_id = ? WHERE id = ?";
+                                    db.query(query, [manager_id, employee_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Employee manager updated successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                //update employee role
+                                if (menu === "Update Employee Role") {
+                                    const employees = await fetchEmployees();
+                                    const roles = await fetchRoles();
+                                    const { employee_id, role_id } = await inquirer.prompt([
+                                        {
+                                            name: "employee_id",
+                                            type: "list",
+                                            message: "Which employee would you like to update?",
+                                            choices: employees
+                                        },
+                                        {
+                                            name: "role_id",
+                                            type: "list",
+                                            message: "What is the employee's new role?",
+                                            choices: roles
+                                        }
+                                    ]);
+                                    const query = "UPDATE employee SET role_id = ? WHERE id = ?";
+                                    db.query(query, [role_id, employee_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Employee role updated successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "View All Roles") {
+                                    const query = "SELECT * FROM role";
+                                    db.query(query, (err, res) =>{
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.table(res);
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "Add Role") {
+                                    const departments = await fetchDepartments();
+                                    const { title, salary, department_id } = await inquirer.prompt([
+                                        {
+                                            name: "title",
+                                            type: "input",
+                                            message: "What is the role's title?"
+                                        },
+                                        {
+                                            name: "salary",
+                                            type: "input",
+                                            message: "What is the role's salary?"
+                                        },
+                                        {
+                                            name: "department_id",
+                                            type: "list",
+                                            message: "What department does the role belong to?",
+                                            choices: departments
+                                        }
+                                    ]);
+                                    const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
+                                    db.query(query, [title, salary, department_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Role added successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "Remove Role") {
+                                    const roles = await fetchRoles();
+                                    const { role_id } = await inquirer.prompt([
+                                        {
+                                            name: "role_id",
+                                            type: "list",
+                                            message: "Which role would you like to remove?",
+                                            choices: roles
+                                        }
+                                    ]);
+                                    const query = "DELETE FROM role WHERE id = ?";
+                                    db.query(query, [role_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Role removed successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "View All Departments") {
+                                    const query = "SELECT * FROM department";
+                                    db.query(query, (err, res) =>{
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.table(res);
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "Add Department") {
+                                    const { name } = await inquirer.prompt([
+                                        {
+                                            name: "name",
+                                            type: "input",
+                                            message: "What is the department's name?"
+                                        }
+                                    ]);
+                                    const query = "INSERT INTO department (name) VALUES (?)";
+                                    db.query(query, [name], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Department added successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "Remove Department") {
+                                    const departments = await fetchDepartments();
+                                    const { department_id } = await inquirer.prompt([
+                                        {
+                                            name: "department_id",
+                                            type: "list",
+                                            message: "Which department would you like to remove?",
+                                            choices: departments
+                                        }
+                                    ]);
+                                    const query = "DELETE FROM department WHERE id = ?";
+                                    db.query(query, [department_id], (err, res) => {
+                                        if (err) {
+                                            console.error("error:", err);
+                                        } else {
+                                            console.log("Department removed successfully");
+                                            promptMenu();
+                                        }
+                                    });
+                                }
+
+                                if (menu === "Exit") {
+                                    db.end();
+                                }
+                            }
 if (answer.menu === "View All Roles") {
     const query = "SELECT * FROM role";
     db.query(query, (err, res) =>{
@@ -323,14 +526,14 @@ if (answers.menu === "Add Role") {
         }
     ]);
     const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
-    db.query(query, [title, salary, department_id], (err, res) => {
+    db.query(query, [title, salary, department_id], (err) => {
         if (err) {
             console.error("error:", err);
         } else {
             console.log("Role added successfully");
             promptMenu();
         }
-    })
+    }); // <-- added closing parenthesis here
 }
 //remove role
 if (answers.menu === "Remove Role") {
